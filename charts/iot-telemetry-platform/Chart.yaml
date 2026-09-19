@@ -1,0 +1,18 @@
+apiVersion: v2
+name: iot-telemetry-platform
+description: High-throughput IoT telemetry ingestion, time-series storage, and observability platform on Kubernetes
+type: application
+version: 1.0.0
+appVersion: "2.4.0"
+keywords:
+  - iot
+  - telemetry
+  - mqtt
+  - lorawan
+  - chirpstack
+  - influxdb
+  - postgresql
+  - grafana
+maintainers:
+  - name: Temirbek Rakhimgalyiev
+    email: temirbek.18052003@gmail.com
