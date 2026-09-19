@@ -1,0 +1,140 @@
+# Default values for iot-telemetry-platform.
+# All sensitive credentials MUST be provided via external secrets, environment overrides, or CI/CD pipelines.
+
+global:
+  namespace: telemetry-system
+  domain: telemetry.example.internal
+  tlsSecretName: telemetry-tls-cert
+  storageClass: local-path
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "64m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    chirpstack: chirpstack.telemetry.example.internal
+    grafana: grafana.telemetry.example.internal
+    adminer: adminer.telemetry.example.internal
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  persistence:
+    enabled: true
+    size: 20Gi
+  auth:
+    database: chirpstack
+    username: chirpstack
+    existingSecret: telemetry-secrets
+    secretKeys:
+      passwordKey: postgresql-password
+
+# Redis Configuration (Cache & Message Queue)
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: 7-alpine
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  persistence:
+    enabled: true
+    size: 5Gi
+
+# Eclipse Mosquitto (MQTT Broker)
+mosquitto:
+  enabled: true
+  image:
+    repository: eclipse-mosquitto
+    tag: 2.0-openssl
+  service:
+    mqttPort: 1883
+    wsPort: 9001
+  persistence:
+    enabled: true
+    size: 5Gi
+
+# ChirpStack (LoRaWAN Network Server & Gateway Bridge)
+chirpstack:
+  enabled: true
+  image:
+    repository: chirpstack/chirpstack
+    tag: 4.9.0
+  gatewayBridge:
+    image:
+      repository: chirpstack/chirpstack-gateway-bridge
+      tag: 4.0.11
+    service:
+      port: 1700
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+# InfluxDB (Time-Series TSDB)
+influxdb:
+  enabled: true
+  image:
+    repository: influxdb
+    tag: 2.7-alpine
+  persistence:
+    enabled: true
+    size: 50Gi
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# Telegraf (Metric Collector & Pipeline Processor)
+telegraf:
+  enabled: true
+  image:
+    repository: telegraf
+    tag: 1.31-alpine
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Grafana (Telemetry Dashboards)
+grafana:
+  enabled: true
+  image:
+    repository: grafana/grafana
+    tag: 11.1.0
+  persistence:
+    enabled: true
+    size: 10Gi
+  admin:
+    existingSecret: telemetry-secrets
+    userKey: grafana-admin-user
+    passwordKey: grafana-admin-password
